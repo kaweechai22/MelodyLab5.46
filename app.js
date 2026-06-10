@@ -863,16 +863,47 @@ function drawPressureWaveFinal(ctx, c, p, w, h){
   ctx.font="bold 14px Sarabun, system-ui, sans-serif";
   ctx.textAlign="center";
   const labelY = particleTop - 4;
-  const compressionX = obsXBase;
-  const rarefactionX = obsXBase + wavelengthPx/2;
-  if(compressionX > xMin+40 && compressionX < xMax-40){
-    ctx.fillStyle="rgba(80,235,255,.98)";
-    ctx.fillText("ส่วนอัด (Compression)", compressionX, labelY);
+  const compressionText = "ส่วนอัด (Compression)";
+  const rarefactionText = "ส่วนขยาย (Rarefaction)";
+  let compressionX = obsXBase - wavelengthPx * 0.22;
+  let rarefactionX = obsXBase + wavelengthPx * 0.62;
+
+  const compressionW = ctx.measureText(compressionText).width;
+  const rarefactionW = ctx.measureText(rarefactionText).width;
+  const minGap = 28;
+
+  compressionX = Math.max(xMin + compressionW/2 + 10, compressionX);
+  rarefactionX = Math.min(xMax - rarefactionW/2 - 10, rarefactionX);
+
+  if(compressionX + compressionW/2 + minGap > rarefactionX - rarefactionW/2){
+    const mid = (compressionX + rarefactionX) / 2;
+    compressionX = mid - (compressionW/2 + minGap/2);
+    rarefactionX = mid + (rarefactionW/2 + minGap/2);
+    compressionX = Math.max(xMin + compressionW/2 + 10, compressionX);
+    rarefactionX = Math.min(xMax - rarefactionW/2 - 10, rarefactionX);
   }
-  if(rarefactionX > xMin+40 && rarefactionX < xMax-40){
-    ctx.fillStyle="rgba(220,150,255,.98)";
-    ctx.fillText("ส่วนขยาย (Rarefaction)", rarefactionX, labelY);
+
+  function drawLabelPill(cx, text, fill, stroke, textColor){
+    const tw = ctx.measureText(text).width;
+    const pillW = tw + 18;
+    const pillH = 24;
+    const px = cx - pillW/2;
+    const py = labelY - 17;
+    ctx.save();
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1;
+    roundRect(ctx, px, py, pillW, pillH, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = textColor;
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, cx, py + pillH/2 + 1);
+    ctx.restore();
   }
+
+  drawLabelPill(compressionX, compressionText, "rgba(18,70,92,.70)", "rgba(80,235,255,.45)", "rgba(80,235,255,.98)");
+  drawLabelPill(rarefactionX, rarefactionText, "rgba(70,34,92,.72)", "rgba(220,150,255,.42)", "rgba(220,150,255,.98)");
   ctx.restore();
 
   // x-axis under particle graph
