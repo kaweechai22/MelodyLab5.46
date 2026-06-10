@@ -687,7 +687,7 @@ function drawDisplacementPressureFinal(ctx, c, p, w, h){
   const xMax = w - 72;
   const obsX = w * 0.57;
 
-  // v5.87: frequency and wave speed now affect graph wavelength.
+  // v5.88: frequency and wave speed affect wavelength, while the graphs now fill the full vertical slot.
   // Reference: at 440 Hz and 343 m/s, wavelengthPx is about 270 px.
   const referenceLambda = 343 / 440;
   const wavelengthPx = Math.max(125, Math.min(560, (p.lambda / referenceLambda) * 270));
@@ -697,20 +697,20 @@ function drawDisplacementPressureFinal(ctx, c, p, w, h){
   const phaseDiffDeg = Math.round(p.phaseDiffDeg ?? 90);
   const phaseDistancePx = wavelengthPx * (phaseDiffDeg / 360);
 
-  // v5.87: use canvas height to fill vertical space.
-  const titleY = 34;
-  const arrowY = 72;
-  const topStartY = 98;
-  const bottomMargin = 44;
-  const gap = 64;
-  const availableGraphH = Math.max(176, h - topStartY - bottomMargin - gap);
-  const graphH = Math.max(88, Math.min(168, availableGraphH / 2));
+  // v5.88: make both graphs consume the available vertical slot on mobile.
+  const titleY = 32;
+  const arrowY = 70;
+  const topStartY = 94;
+  const bottomMargin = 10;
+  const gap = Math.max(32, Math.min(44, h * 0.055));
+  const availableGraphH = Math.max(220, h - topStartY - bottomMargin - gap);
+  const graphH = Math.max(108, availableGraphH / 2);
   const topCard = {x:xMin-24, y:topStartY, w:xMax-xMin+48, h:graphH};
   const bottomCard = {x:xMin-24, y:topCard.y + topCard.h + gap, w:xMax-xMin+48, h:graphH};
   const topMid = topCard.y + topCard.h/2;
   const bottomMid = bottomCard.y + bottomCard.h/2;
-  const ampPx = Math.max(28, topCard.h * 0.34) * p.A;
-  const pressureAmpPx = Math.max(28, bottomCard.h * 0.34) * p.A;
+  const ampPx = Math.max(34, topCard.h * 0.36) * p.A;
+  const pressureAmpPx = Math.max(34, bottomCard.h * 0.36) * p.A;
 
   ctx.fillStyle="#cfe9ff";
   ctx.font="20px Sarabun, system-ui, sans-serif";
@@ -814,7 +814,7 @@ function drawDisplacementPressureFinal(ctx, c, p, w, h){
   ctx.textAlign="center";
   ctx.save(); ctx.translate(xMin-58, topMid); ctx.rotate(-Math.PI/2); ctx.fillText("การกระจัด s (สัมพัทธ์)", 0, 0); ctx.restore();
   ctx.save(); ctx.translate(xMin-58, bottomMid); ctx.rotate(-Math.PI/2); ctx.fillText("ความดัน ΔP (สัมพัทธ์)", 0, 0); ctx.restore();
-  ctx.fillText("ตำแหน่ง x", w*0.53, topCard.y + topCard.h + 22);
+  ctx.fillText("ตำแหน่ง x", w*0.53, topCard.y + topCard.h + 20);
   ctx.fillText("ตำแหน่ง x", w*0.53, bottomCard.y + bottomCard.h + 22);
   ctx.restore();
 
@@ -831,7 +831,7 @@ function drawDisplacementPressureFinal(ctx, c, p, w, h){
 
   const phaseX1 = obsX;
   const phaseX2 = Math.min(xMax-10, obsX + phaseDistancePx);
-  const phaseY = topCard.y + topCard.h + 31;
+  const phaseY = topCard.y + topCard.h + Math.min(26, gap - 8);
   if(phaseX2 - phaseX1 > 24 && phaseY < bottomCard.y - 8){
     ctx.save();
     ctx.strokeStyle="rgba(196,181,253,.94)";
@@ -864,7 +864,7 @@ function drawDisplacementPressureFinal(ctx, c, p, w, h){
   ctx.fillStyle="rgba(255,255,255,.86)";
   ctx.font="14px Sarabun, system-ui, sans-serif";
   ctx.textAlign="right";
-  ctx.fillText("จุดสังเกต", obsX - 12, topCard.y + 18);
+  ctx.fillText("จุดสังเกต", obsX - 12, topCard.y + 16);
   ctx.restore();
 }
 
@@ -1704,12 +1704,10 @@ function resizeVisualizerCanvas(){
 
   let cssH;
   if(isLongitudinal || isDisplacementPressure){
-    // v5.66: force graph to fill the graph slot vertically on real phones.
-    // Portrait: graph height is based on viewport height, not just width.
-    // This makes the particle region extend from near the title to near the player bar.
+    // v5.88: allow more vertical room on phones so the graph can visibly fill the slot.
     const vh = Math.max(640, window.innerHeight || 800);
-    cssH = isLandscape ? Math.round(Math.min(vh * 0.62, cssW * 0.54)) : Math.round(vh * 0.46);
-    cssH = Math.max(isLandscape ? 250 : 390, Math.min(cssH, isLandscape ? 360 : 520));
+    cssH = isLandscape ? Math.round(Math.min(vh * 0.66, cssW * 0.58)) : Math.round(vh * 0.52);
+    cssH = Math.max(isLandscape ? 280 : 430, Math.min(cssH, isLandscape ? 420 : 620));
   }else{
     cssH = isLandscape ? Math.round(cssW * 0.42) : Math.round(cssW * 0.54);
     cssH = Math.max(isLandscape ? 180 : 220, Math.min(cssH, isLandscape ? 235 : 320));
